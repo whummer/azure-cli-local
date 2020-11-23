@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import glob
+
+PARENT_FOLDER = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+venv_dir = os.path.join(PARENT_FOLDER, '.venv')
+if os.path.isdir(venv_dir):
+    sys.path.insert(0, PARENT_FOLDER)
+    for path in glob.glob(os.path.join(venv_dir, 'lib/python*/site-packages')):
+        sys.path.insert(0, path)
+
+if 'ADAL_PYTHON_SSL_NO_VERIFY' not in os.environ:
+    os.environ['ADAL_PYTHON_SSL_NO_VERIFY'] = '1'
+
+PORT_AZURE = int(os.environ.get('PORT_AZURE') or 12121)
+LOCALSTACK_HOSTNAME = 'localhost.localstack.cloud'
+AZURE_LOCAL_HOST = '%s:%s' % (LOCALSTACK_HOSTNAME, PORT_AZURE)
+AZURE_LOCAL_ENDPOINT = 'https://%s/' % AZURE_LOCAL_HOST
+
+import warnings
+warnings.filterwarnings('ignore')
+
+from azure.cli.core import cloud
+from adal.constants import AADConstants
+from azure.cli.core._profile import Profile, SubscriptionFinder
+
+AADConstants.WORLD_WIDE_AUTHORITY = AZURE_LOCAL_HOST
+AADConstants.WELL_KNOWN_AUTHORITY_HOSTS.append(AZURE_LOCAL_HOST)
+
+cloud.AZURE_PUBLIC_CLOUD.endpoints.management = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.resource_manager = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.sql_management = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.batch_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.active_directory = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.active_directory_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.active_directory_graph_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.microsoft_graph_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.active_directory_data_lake_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.vm_image_alias_doc = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.log_analytics_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.app_insights_resource_id = AZURE_LOCAL_ENDPOINT
+cloud.AZURE_PUBLIC_CLOUD.endpoints.attestation_resource_id = AZURE_LOCAL_ENDPOINT
+
+# start main CLI entrypoint
+from azure.cli import __main__
